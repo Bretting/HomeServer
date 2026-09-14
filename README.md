@@ -17,10 +17,15 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 | **Radarr** | `radarr` | Auto-grab movies | `:7878` |
 | **Readarr** | `readarr` | Auto-grab books → Kavita | `:8787` |
 | **Bazarr** | `bazarr` | Auto-download subtitles | `:6767` |
+| **Caddy** | `caddy` | Reverse proxy — `https://name.home.lan` | `:80` / `:443` |
+| **AdGuard Home** | `adguardhome` | Network-wide ad-block + local DNS | `:3000` setup → `:8083` |
 | **Dockge** | `dockge` | Compose-stack management UI | `:5001` |
 | **Uptime Kuma** | `uptime-kuma` | Health checks + phone alerts | `:3001` |
 | **Dozzle** | `dozzle` | Live container logs | `:8888` |
 | **Watchtower** | `watchtower` | Auto-update containers | — |
+
+Host-level setup (OS install, hardening, backups, laptop lid, port 53) lives
+in **[`docs/host-setup.md`](./docs/host-setup.md)** — do that alongside this.
 
 ## Prerequisites (on the host OS)
 
@@ -29,7 +34,11 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 > alongside this Docker stack. Set it up separately — see
 > [`homeassistant-vm/README.md`](./homeassistant-vm/README.md).
 
-Recommended OS: **Debian 12** (minimal, no desktop). Then:
+Recommended OS: **Debian 12** (minimal, no desktop) — stable, light, and the
+best-supported base for Docker + KVM. See
+[`docs/host-setup.md`](./docs/host-setup.md) for the full hardening/reliability
+walkthrough (static IP, auto-updates, SSH, firewall, freeing port 53 for
+AdGuard, laptop lid behavior). Then:
 
 ```bash
 # 1. Install Docker Engine + Compose plugin
@@ -94,23 +103,32 @@ Manage everything from then on in the **Dockge** UI at `:5001`.
 4. **Jellyfin** (`:8096`) — add libraries pointing at `/media/tv`,
    `/media/movies`; enable VAAPI transcoding under Playback.
 5. **Kavita** (`:5000`) — add a library at `/books`.
-6. **Uptime Kuma** (`:3001`) — add a monitor for each service URL and
+6. **AdGuard Home** (`:3000`) — run the setup wizard; set the admin interface
+   to port 80 (→ host `:8083`). Then add a DNS rewrite `*.home.lan ->
+   <server-ip>`, and point your router's DHCP DNS at `<server-ip>`.
+7. **Caddy** — once AdGuard resolves `*.home.lan`, reach every UI by name,
+   e.g. `https://jellyfin.home.lan`. Edit [`caddy/Caddyfile`](./caddy/Caddyfile)
+   to add/change hosts.
+8. **Uptime Kuma** (`:3001`) — add a monitor for each service URL and
    connect a notification channel (Telegram/ntfy/etc.) for phone alerts.
 
 ## Backups (do this!)
 
 `/srv/appdata` holds every service's config and database — losing it means
-reconfiguring everything by hand. Back it up regularly, e.g.:
+reconfiguring everything by hand. Use the included **restic** script for
+versioned, encrypted, automated backups to an external drive or cloud:
 
 ```bash
-# stop, snapshot, restart (simple version)
-docker compose stop
-sudo tar czf /mnt/backup/appdata-$(date +%F).tar.gz /srv/appdata
-docker compose start
+sudo apt-get install -y restic
+cp scripts/backup.env.example scripts/backup.env   # edit: repo + password
+chmod 600 scripts/backup.env
+export $(grep -v '^#' scripts/backup.env | xargs) && restic init
+bash scripts/backup.sh
 ```
 
-Consider `restic` or `borg` to an external drive / cloud for versioned,
-automated backups.
+Schedule it daily with the systemd timer in
+[`docs/host-setup.md`](./docs/host-setup.md), and **test a restore once**.
+Home Assistant has its own backup system inside the VM.
 
 ## Notes
 

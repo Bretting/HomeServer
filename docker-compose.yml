@@ -174,6 +174,45 @@ services:
     restart: unless-stopped
 
   # ─────────────────────────────────────────────────────────────────
+  #  NETWORK: reverse proxy + ad-blocking DNS
+  # ─────────────────────────────────────────────────────────────────
+
+  # Caddy gives every web UI a clean https://name.home.lan address with
+  # automatic TLS (self-signed internal CA on the LAN). Edit ./caddy/Caddyfile.
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"          # HTTP/3
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${CONFIG_ROOT}/caddy/data:/data
+      - ${CONFIG_ROOT}/caddy/config:/config
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  # AdGuard Home: network-wide ad/tracker blocking + local DNS.
+  # First run: open http://<server-ip>:3000 to run the setup wizard, and set
+  # the admin interface to listen on port 80 (maps to host :8083 below).
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: adguardhome
+    ports:
+      - "53:53/tcp"            # DNS
+      - "53:53/udp"            # DNS
+      - "3000:3000/tcp"        # initial setup wizard (one-time)
+      - "8083:80/tcp"          # admin dashboard after setup
+    volumes:
+      - ${CONFIG_ROOT}/adguardhome/work:/opt/adguardhome/work
+      - ${CONFIG_ROOT}/adguardhome/conf:/opt/adguardhome/conf
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────────────────────────
   #  MANAGEMENT & MONITORING
   # ─────────────────────────────────────────────────────────────────
   dockge:
