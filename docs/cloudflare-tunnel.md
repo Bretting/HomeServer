@@ -5,9 +5,18 @@ This exposes **selected** services on real public URLs (e.g.
 makes an outbound connection to Cloudflare and holds it open, so your home
 IP stays hidden and your router stays closed.
 
-We expose **only Kavita (books)** here, behind a Cloudflare Access login.
-Home Assistant stays on **Tailscale** for the Companion app (the app doesn't
-play nicely behind an Access login page).
+We expose **only Kavita (books)** here, behind a Cloudflare Access login, so
+**family (e.g. wife, grandparents) can read from any browser with no app to
+install** — they just open the URL and log in with an emailed code. Home
+Assistant stays on **Tailscale** for the Companion app (the app doesn't play
+nicely behind an Access login page).
+
+> **Why not Tailscale for the family?** Tailscale needs the app installed and
+> an account on every device — fine for you, friction for grandparents.
+> Tailscale *Funnel* can make a public URL but adds no login of its own.
+> Cloudflare Tunnel + Access gives the "just a URL + a login" experience
+> non-technical people expect. Use Tailscale for yourself, the tunnel for
+> sharing.
 
 > ⚠️ Anything you route through the tunnel is on the public internet. Only
 > add hostnames you intend to share, and always put **Cloudflare Access** in
@@ -67,19 +76,41 @@ is now live. Cloudflare handles the public HTTPS certificate automatically.
 **Zero Trust → Access → Applications → Add an application → Self-hosted:**
 
 - Application domain: `books.example.com`
-- Add a **policy**: Action *Allow*, and a rule like
-  *Emails* → your email address (and family members' emails).
-- Login method: the built-in **One-time PIN** (emails a code) works with no
-  extra setup; or wire up Google/GitHub.
+- Add a **policy**: Action *Allow*, rule type **Emails**, and list **every
+  family member's email address** (yours, your wife's, each grandparent's).
+- Login method: leave the built-in **One-time PIN** on — Cloudflare emails a
+  6-digit code, so there's **nothing to install and no password to remember**.
+  Ideal for non-technical family. (You *can* add Google/GitHub too.)
+- Optional: set the session duration longer (e.g. **1 month**) under the
+  policy so they don't have to re-enter a code often.
 
-Now visitors get a Cloudflare login *before* they can even see Kavita's login
-page. Two doors instead of one.
+Now anyone opening the URL gets a Cloudflare login *before* they can even see
+Kavita — and only the emails you listed get in.
 
-> **Reader apps + Access:** a browser handles the Access login fine. Native
-> OPDS reader apps can't do the interactive login, so for those either read
-> in the browser (PWA), or create an Access **Service Token** / bypass for
-> the OPDS path — see Cloudflare's "Service Auth" docs. Simplest is to use
-> Tailscale for app-based reading and the tunnel for browser/sharing.
+### Family experience, end to end
+
+1. You send grandma `https://books.example.com`.
+2. She opens it → "enter your email" → she types hers → gets a code by email
+   → types the code. (No app, no account signup.)
+3. She lands in Kavita and reads in the browser. On phones she can "Add to
+   Home Screen" so it behaves like an app (PWA).
+
+### Kavita accounts for each person
+
+Cloudflare Access controls *who reaches the site*; Kavita still has its own
+login. Two clean options:
+
+- **Simple:** in Kavita (**Settings → Users → Invite**) create one account
+  per person with a simple password, and set what libraries each can see.
+- **Even simpler for grandparents:** give them a single shared read-only
+  Kavita account. Since Access already verified their identity at the door,
+  the shared login is just a formality.
+
+> **Reader apps + Access:** a browser/PWA handles the Access login fine (what
+> your family will use). Native OPDS reader *apps* can't do the interactive
+> login — for those use Tailscale, or create an Access **Service Token** for
+> the OPDS path (Cloudflare "Service Auth" docs). Family in a browser: no
+> issue.
 
 ## Adding more later
 
