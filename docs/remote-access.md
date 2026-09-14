@@ -112,6 +112,32 @@ https://tailscale.com/kb/1018/acls
 - **MagicDNS + HTTPS** — Tailscale can issue real certs for `*.ts.net` names
   if you ever want `https://` internally. https://tailscale.com/kb/1153/enabling-https
 
+## 6. TV — Chromecast with Google TV (dongle)
+
+Your TV dongle is a **Chromecast with Google TV** — that's full **Android TV**
+with an app store, so don't bother "casting". Install apps on it directly:
+
+1. On the dongle, open the **Play Store** and install:
+   - **Jellyfin** (the official Android TV app)
+   - **Tailscale** (it has an Android TV app)
+2. Open **Tailscale** on the dongle → log in with your account → the TV joins
+   your tailnet (it counts as one of your free user devices).
+3. Open **Jellyfin** → add server `http://<host>:8096` (the server's Tailscale
+   name/IP, or its LAN IP since the TV is usually on the same network) → sign
+   in. Browse and play with the remote — proper direct play, no phone needed.
+
+Because the dongle is on your tailnet, it works **the same at home or away**
+(e.g. taking it to the grandparents' TV). No open ports, no casting hop.
+
+- **Casting still works too** if you'd rather: from the Jellyfin phone app or
+  the web UI, hit the Cast button while on the same Wi-Fi as the TV. But the
+  installed app is the better experience.
+- **Codecs/transcoding:** Google TV handles H.264 and usually H.265/4K, so
+  most files direct-play. Anything it can't, Jellyfin transcodes using the
+  server's **AMD VAAPI** hardware acceleration — no CPU meltdown.
+- **ACL note:** if you lock family down with ACLs (step 4), remember the TV is
+  one of *your* devices, so it already has full access — nothing extra needed.
+
 ## Sources
 
 - Download (official): https://tailscale.com/download
