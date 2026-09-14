@@ -101,7 +101,9 @@ VM regularly. This is separate from the Docker stack's `/srv/appdata` backup.
 
 ## Remote / phone access
 
-Same as the rest of the stack: with **Tailscale** on the host (or Cloudflare
-Tunnel), the **Home Assistant Companion app** reaches `http://<vm-ip>:8123`
-from anywhere. (Home Assistant Cloud / Nabu Casa is another paid option that
-also enables cloud-based voice assistants.)
+Same as the rest of the stack: with **Tailscale**, the **Home Assistant
+Companion app** reaches `http://<vm-ip>:8123` from anywhere. Give the VM its
+own Tailscale node (the Tailscale add-on inside HAOS is the easy way) — see
+[`docs/remote-access.md`](../docs/remote-access.md). (Home Assistant Cloud /
+Nabu Casa is another paid option that also enables cloud-based voice
+assistants.)

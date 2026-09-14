@@ -19,7 +19,6 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 | **Bazarr** | `bazarr` | Auto-download subtitles | `:6767` |
 | **Caddy** | `caddy` | Reverse proxy — `https://name.home.lan` | `:80` / `:443` |
 | **AdGuard Home** | `adguardhome` | Network-wide ad-block + local DNS | `:3000` setup → `:8083` |
-| **cloudflared** | `cloudflared` | Cloudflare Tunnel — public URL for books | — (optional) |
 | **Dockge** | `dockge` | Compose-stack management UI | `:5001` |
 | **Uptime Kuma** | `uptime-kuma` | Health checks + phone alerts | `:3001` |
 | **Dozzle** | `dozzle` | Live container logs | `:8888` |
@@ -76,13 +75,10 @@ account. Your phone is now on the same private network as the server, so:
   *KyBook*, *Cantook*) and point it at Kavita's OPDS feed, or just use
   Kavita's installable web app (PWA) at `http://<tailscale-ip>:5000`.
 
-> **Public URLs (optional).** To share a service without a VPN client —
-> e.g. reading books in a browser, or family access — a **Cloudflare Tunnel**
-> gives a real `https://` address with no open router ports. This repo
-> includes a `cloudflared` container set up to expose **books only**, behind
-> a Cloudflare Access login. See
-> [`docs/cloudflare-tunnel.md`](./docs/cloudflare-tunnel.md). Keep everything
-> else (HA app, *arr, downloads, admin UIs) on Tailscale.
+**Family (wife, grandparents)** join the same way — the free plan allows up to
+6 users. Add them in the Tailscale admin console and use ACLs to share only
+Jellyfin + Kavita with them. Full walkthrough (users, node sharing, ACLs,
+subnet routes) in [`docs/remote-access.md`](./docs/remote-access.md).
 
 ## Start it up
 
