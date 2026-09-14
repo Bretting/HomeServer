@@ -11,20 +11,13 @@ services:
 
   # ─────────────────────────────────────────────────────────────────
   #  HOME AUTOMATION
+  #
+  #  Home Assistant is NOT a container here — to get the add-on store you
+  #  need the Supervisor, which only comes with Home Assistant OS (HAOS).
+  #  HAOS runs in a KVM virtual machine alongside this Docker stack.
+  #  See:  homeassistant-vm/install-haos-vm.sh  and  homeassistant-vm/README.md
+  #  Web UI once running:  http://<haos-vm-ip>:8123
   # ─────────────────────────────────────────────────────────────────
-  homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:stable
-    container_name: homeassistant
-    # host mode lets HA discover devices (mDNS, DLNA, etc.) on your LAN.
-    network_mode: host
-    volumes:
-      - ${CONFIG_ROOT}/homeassistant:/config
-      - /etc/localtime:/etc/localtime:ro
-      - /run/dbus:/run/dbus:ro
-    environment:
-      - TZ=${TZ}
-    restart: unless-stopped
-    # Web UI: http://<server-ip>:8123
 
   # ─────────────────────────────────────────────────────────────────
   #  MEDIA SERVER  (hardware transcoding via AMD VAAPI)

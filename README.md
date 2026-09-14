@@ -7,7 +7,7 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 
 | Service | Container | What it does | Access |
 |---|---|---|---|
-| **Home Assistant** | `homeassistant` | Home automation | `:8123` — via **Companion app** |
+| **Home Assistant** | *VM (HAOS)* | Home automation **+ add-on store** | `:8123` — via **Companion app** |
 | **Jellyfin** | `jellyfin` | Media server (HW transcoding) | `:8096` — via **Jellyfin app** |
 | **Kavita** | `kavita` | Read books on your phone (OPDS) | `:5000` — via reader apps |
 | **qBittorrent** | `qbittorrent` | Torrent client (behind VPN) | `:8080` |
@@ -23,6 +23,11 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 | **Watchtower** | `watchtower` | Auto-update containers | — |
 
 ## Prerequisites (on the host OS)
+
+> **Home Assistant runs in a VM, not a container.** To get the add-on
+> store you need Home Assistant OS (Supervisor), which runs as a KVM VM
+> alongside this Docker stack. Set it up separately — see
+> [`homeassistant-vm/README.md`](./homeassistant-vm/README.md).
 
 Recommended OS: **Debian 12** (minimal, no desktop). Then:
 
@@ -53,7 +58,8 @@ Then install the Tailscale app on your phone and log in with the same
 account. Your phone is now on the same private network as the server, so:
 
 - **Home Assistant** → install the *Home Assistant Companion* app, point it
-  at `http://<tailscale-ip>:8123`.
+  at `http://<haos-vm-ip>:8123` (set up per
+  [`homeassistant-vm/README.md`](./homeassistant-vm/README.md)).
 - **Jellyfin** → install the *Jellyfin* app (or Findroid/Swiftfin), server
   URL `http://<tailscale-ip>:8096`.
 - **Books** → install a reader with OPDS support (e.g. *Moon+ Reader*,
@@ -111,6 +117,7 @@ automated backups.
 - **AMD transcoding**: the `jellyfin` service maps `/dev/dri`; your user may
   need to be in the `render`/`video` group for hardware acceleration.
 - **Readarr** uses the `develop` tag because it has no stable release yet.
-- **Home Assistant Container** (this image) has no add-on store. If you want
-  add-ons/Supervisor later, run Home Assistant OS in a VM instead.
+- **Home Assistant** runs as a HAOS VM (for the add-on store), not a
+  container — see [`homeassistant-vm/`](./homeassistant-vm/). Give the VM a
+  bridged network for reliable device discovery.
 - Legal reminder: only download content you're entitled to.
