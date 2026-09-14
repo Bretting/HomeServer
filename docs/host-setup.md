@@ -49,6 +49,7 @@ sudo ufw default allow outgoing
 sudo ufw allow ssh
 sudo ufw allow 53          # AdGuard DNS
 sudo ufw allow 80,443/tcp  # Caddy
+sudo ufw allow from 192.168.1.0/24 to any port 445  # HA backup share — set to your LAN subnet
 # If NOT using Tailscale and you expose services directly, also open the
 # specific service ports you need. With Tailscale you generally don't.
 sudo ufw enable

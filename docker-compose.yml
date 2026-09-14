@@ -213,6 +213,28 @@ services:
     restart: unless-stopped
 
   # ─────────────────────────────────────────────────────────────────
+  #  BACKUP TARGET for the Home Assistant VM
+  #  A small SMB share so HAOS can drop its full backups onto the host, where
+  #  restic (scripts/backup.sh backs up CONFIG_ROOT) then versions them and
+  #  ships them off-site. See homeassistant-vm/README.md > Backups.
+  #  Reachable on the LAN only — restrict port 445 with the firewall.
+  # ─────────────────────────────────────────────────────────────────
+  samba:
+    image: dperson/samba:latest
+    container_name: samba
+    command: >
+      -u "${SMB_USER};${SMB_PASSWORD}"
+      -s "ha-backups;/share;yes;no;no;${SMB_USER}"
+      -p
+    ports:
+      - "445:445"
+    volumes:
+      - ${CONFIG_ROOT}/ha-backups:/share
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────────────────────────
   #  MANAGEMENT & MONITORING
   # ─────────────────────────────────────────────────────────────────
   dockge:

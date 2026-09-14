@@ -3,8 +3,11 @@
 #  Versioned backups of the server's config with restic.
 #
 #  Backs up CONFIG_ROOT (every container's config/database). Does NOT back
-#  up media/downloads — those are large and re-downloadable. Home Assistant
-#  has its own backup system inside the VM (Settings > System > Backups).
+#  up media/downloads — those are large and re-downloadable.
+#
+#  Home Assistant is covered too: HAOS writes its full backups to the Samba
+#  share at CONFIG_ROOT/ha-backups (see homeassistant-vm/README.md), so they
+#  ride along in this same restic run.
 #
 #  Setup (once):
 #    sudo apt-get install -y restic

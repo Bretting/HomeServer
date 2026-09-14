@@ -93,11 +93,42 @@ virsh shutdown haos         # graceful stop
 virsh console haos          # serial console (Ctrl+] to exit)
 ```
 
-## Backups
+## Backups — full HA, folded into the restic set
 
-HAOS has its own backup system (**Settings → System → Backups**) — snapshots
-config *and* add-ons. Point it at a network share, or copy backups off the
-VM regularly. This is separate from the Docker stack's `/srv/appdata` backup.
+HA lives inside this VM's disk, **not** in `/srv/appdata`, so the host's
+restic job does not see it by default. Fix that by having HA write its own
+**full backups** (config, dashboards, automations, users, **and every add-on
+plus its data**) to the host, where restic then versions them and sends them
+off-site. One backup system, HA included.
+
+The Docker stack runs a small **Samba share** (`samba` service) exposing
+`${CONFIG_ROOT}/ha-backups` as `\\<server-ip>\ha-backups`. Wire it up once:
+
+1. In `.env`, set `SMB_USER` / `SMB_PASSWORD`, then `docker compose up -d samba`.
+2. In HA: **Settings → System → Storage → Add network storage**
+   - Name: `host-backups`; Server: `<server-ip>`; Share: `ha-backups`
+   - Username/password: the `SMB_USER` / `SMB_PASSWORD` from `.env`
+   - Usage: **Backups**
+3. **Settings → System → Backups → ⋮ → Automatic backups**: set a schedule
+   (e.g. daily), retention (e.g. keep 7), an **encryption password** (store it
+   safely), and choose the `host-backups` location. Optionally keep one copy
+   on the VM too.
+
+Now every night HA drops a full archive into `/srv/appdata/ha-backups`, and
+because restic backs up `/srv/appdata`, those archives are automatically
+versioned and pushed to your restic repo — **HA is fully covered.**
+
+**Restore:** install a fresh HAOS VM, and on the onboarding screen choose
+*Restore from backup* (upload the archive + its encryption password) — you're
+back exactly as you were, add-ons and all.
+
+> **Zero-host-infra alternative:** the community **"Home Assistant Google
+> Drive Backup"** add-on uploads full HA backups straight to Google Drive on a
+> schedule, no Samba/restic involved. Use it instead if you'd rather not run
+> the share.
+
+> **Firewall:** the Samba share is for your LAN only — allow port 445 from
+> your LAN subnet and nowhere else (see `docs/host-setup.md`).
 
 ## Remote / phone access
 

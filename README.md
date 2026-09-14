@@ -19,6 +19,7 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 | **Bazarr** | `bazarr` | Auto-download subtitles | `:6767` |
 | **Caddy** | `caddy` | Reverse proxy — `https://name.home.lan` | `:80` / `:443` |
 | **AdGuard Home** | `adguardhome` | Network-wide ad-block + local DNS | `:3000` setup → `:8083` |
+| **Samba** | `samba` | Backup share for the HA VM (LAN only) | `:445` |
 | **Dockge** | `dockge` | Compose-stack management UI | `:5001` |
 | **Uptime Kuma** | `uptime-kuma` | Health checks + phone alerts | `:3001` |
 | **Dozzle** | `dozzle` | Live container logs | `:8888` |
@@ -47,7 +48,7 @@ sudo usermod -aG docker "$USER"   # log out/in afterward
 
 # 2. Create the data layout (torrents + media on ONE filesystem so
 #    the *arr apps can hardlink instead of copying files)
-sudo mkdir -p /srv/appdata
+sudo mkdir -p /srv/appdata/ha-backups   # HAOS drops its backups here
 sudo mkdir -p /srv/data/torrents/{tv,movies,books}
 sudo mkdir -p /srv/data/media/{tv,movies,books}
 sudo chown -R "$USER":"$USER" /srv/appdata /srv/data
@@ -128,7 +129,11 @@ bash scripts/backup.sh
 
 Schedule it daily with the systemd timer in
 [`docs/host-setup.md`](./docs/host-setup.md), and **test a restore once**.
-Home Assistant has its own backup system inside the VM.
+
+**Home Assistant is included too:** HAOS writes its full nightly backups to a
+Samba share on the host (`/srv/appdata/ha-backups`), which restic then sweeps
+off-site — so config, add-ons and all are covered. Setup is in
+[`homeassistant-vm/README.md`](./homeassistant-vm/README.md) → Backups.
 
 ## Notes
 
