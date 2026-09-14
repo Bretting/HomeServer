@@ -194,6 +194,20 @@ services:
       - TZ=${TZ}
     restart: unless-stopped
 
+  # Cloudflare Tunnel: exposes SELECTED services on public URLs with no open
+  # router ports (outbound-only connection). Routes are configured in the
+  # Cloudflare Zero Trust dashboard. Only expose what you mean to — here,
+  # just Kavita (books). Put Cloudflare Access in front of it.
+  # See docs/cloudflare-tunnel.md.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+      - TZ=${TZ}
+    restart: unless-stopped
+
   # AdGuard Home: network-wide ad/tracker blocking + local DNS.
   # First run: open http://<server-ip>:3000 to run the setup wizard, and set
   # the admin interface to listen on port 80 (maps to host :8083 below).

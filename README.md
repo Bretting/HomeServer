@@ -19,6 +19,7 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 | **Bazarr** | `bazarr` | Auto-download subtitles | `:6767` |
 | **Caddy** | `caddy` | Reverse proxy — `https://name.home.lan` | `:80` / `:443` |
 | **AdGuard Home** | `adguardhome` | Network-wide ad-block + local DNS | `:3000` setup → `:8083` |
+| **cloudflared** | `cloudflared` | Cloudflare Tunnel — public URL for books | — (optional) |
 | **Dockge** | `dockge` | Compose-stack management UI | `:5001` |
 | **Uptime Kuma** | `uptime-kuma` | Health checks + phone alerts | `:3001` |
 | **Dozzle** | `dozzle` | Live container logs | `:8888` |
@@ -75,10 +76,13 @@ account. Your phone is now on the same private network as the server, so:
   *KyBook*, *Cantook*) and point it at Kavita's OPDS feed, or just use
   Kavita's installable web app (PWA) at `http://<tailscale-ip>:5000`.
 
-> **Alternative — public URLs.** If you'd rather have real addresses like
-> `home.example.com` with no VPN client on the phone, use a **Cloudflare
-> Tunnel** instead of exposing ports. Only expose services you're happy to
-> have on the public internet, always behind HTTPS + authentication.
+> **Public URLs (optional).** To share a service without a VPN client —
+> e.g. reading books in a browser, or family access — a **Cloudflare Tunnel**
+> gives a real `https://` address with no open router ports. This repo
+> includes a `cloudflared` container set up to expose **books only**, behind
+> a Cloudflare Access login. See
+> [`docs/cloudflare-tunnel.md`](./docs/cloudflare-tunnel.md). Keep everything
+> else (HA app, *arr, downloads, admin UIs) on Tailscale.
 
 ## Start it up
 
