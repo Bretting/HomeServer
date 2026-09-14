@@ -17,11 +17,18 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 | **Radarr** | `radarr` | Auto-grab movies | `:7878` |
 | **Readarr** | `readarr` | Auto-grab books → Kavita | `:8787` |
 | **Bazarr** | `bazarr` | Auto-download subtitles | `:6767` |
+| **Jellyseerr** | `jellyseerr` | Family media **request page** → *arr | `:5055` |
+| **FlareSolverr** | `flaresolverr` | Helps Prowlarr reach protected indexers | `:8191` |
+| **Recyclarr** | `recyclarr` | Auto quality profiles for Sonarr/Radarr | — |
 | **Caddy** | `caddy` | Reverse proxy — `https://name.home.lan` | `:80` / `:443` |
 | **AdGuard Home** | `adguardhome` | Network-wide ad-block + local DNS | `:3000` setup → `:8083` |
 | **Samba** | `samba` | Backup share for the HA VM (LAN only) | `:445` |
-| **Dockge** | `dockge` | Compose-stack management UI | `:5001` |
+| **Homepage** | `homepage` | Dashboard linking every service | `:3010` |
 | **Uptime Kuma** | `uptime-kuma` | Health checks + phone alerts | `:3001` |
+| **ntfy** | `ntfy` | Self-hosted push notifications | `:8085` |
+| **Scrutiny** | `scrutiny` | Disk SMART-health monitoring | `:8084` |
+| **Mealie** | `mealie` | Family recipe manager | `:9925` |
+| **Dockge** | `dockge` | Compose-stack management UI | `:5001` |
 | **Dozzle** | `dozzle` | Live container logs | `:8888` |
 | **Watchtower** | `watchtower` | Auto-update containers | — |
 
@@ -101,17 +108,31 @@ Manage everything from then on in the **Dockge** UI at `:5001`.
 3. **Sonarr/Radarr/Readarr** — add qBittorrent as the download client
    (host `gluetun`, port `8080`), and set root folders to
    `/data/media/tv`, `/data/media/movies`, `/data/media/books`.
+   - In **Prowlarr**, add a **FlareSolverr** proxy at `http://flaresolverr:8191`
+     and tag the indexers that need it.
+   - **Recyclarr**: `docker compose run --rm recyclarr config create`, then
+     edit `${CONFIG_ROOT}/recyclarr/recyclarr.yml` with each app's URL + API
+     key. It syncs quality profiles daily.
 4. **Jellyfin** (`:8096`) — add libraries pointing at `/media/tv`,
    `/media/movies`; enable VAAPI transcoding under Playback.
 5. **Kavita** (`:5000`) — add a library at `/books`.
-6. **AdGuard Home** (`:3000`) — run the setup wizard; set the admin interface
+6. **Jellyseerr** (`:5055`) — connect to Jellyfin, then to Radarr & Sonarr.
+   Invite family so they can request movies/shows themselves.
+7. **AdGuard Home** (`:3000`) — run the setup wizard; set the admin interface
    to port 80 (→ host `:8083`). Then add a DNS rewrite `*.home.lan ->
    <server-ip>`, and point your router's DHCP DNS at `<server-ip>`.
-7. **Caddy** — once AdGuard resolves `*.home.lan`, reach every UI by name,
+8. **Caddy** — once AdGuard resolves `*.home.lan`, reach every UI by name,
    e.g. `https://jellyfin.home.lan`. Edit [`caddy/Caddyfile`](./caddy/Caddyfile)
    to add/change hosts.
-8. **Uptime Kuma** (`:3001`) — add a monitor for each service URL and
-   connect a notification channel (Telegram/ntfy/etc.) for phone alerts.
+9. **ntfy** (`:8085`) — pick a hard-to-guess topic name, subscribe to it in
+   the ntfy phone app.
+10. **Uptime Kuma** (`:3001`) — add a monitor for each service URL and set the
+    notification channel to **ntfy** (URL `http://ntfy:80`, your topic).
+11. **Scrutiny** (`:8084`) — edit the `devices:` list for `scrutiny` in the
+    compose file to match your disks (`lsblk`); it then tracks SMART health.
+12. **Homepage** (`:3010`) — edit `${CONFIG_ROOT}/homepage/services.yaml` to
+    list your services. This is your daily landing page.
+13. **Mealie** (`:9925`) — create the admin account; import recipes by URL.
 
 ## Backups (do this!)
 

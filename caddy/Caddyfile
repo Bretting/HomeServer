@@ -60,6 +60,32 @@ bazarr.home.lan {
 	reverse_proxy bazarr:6767
 }
 
+requests.home.lan {
+	import lan
+	reverse_proxy jellyseerr:5055
+}
+
+recipes.home.lan {
+	import lan
+	reverse_proxy mealie:9000
+}
+
+ntfy.home.lan {
+	import lan
+	reverse_proxy ntfy:80
+}
+
+disks.home.lan {
+	import lan
+	reverse_proxy scrutiny:8080
+}
+
+# The dashboard — also served at the bare hostname `home.home.lan`.
+home.home.lan {
+	import lan
+	reverse_proxy homepage:3000
+}
+
 status.home.lan {
 	import lan
 	reverse_proxy uptime-kuma:3001
