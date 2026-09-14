@@ -1,0 +1,232 @@
+# ═══════════════════════════════════════════════════════════════════
+#  Home Server stack
+#  See README.md for the full setup walkthrough.
+#
+#  Quick start:
+#    cp .env.example .env  &&  nano .env
+#    docker compose up -d
+# ═══════════════════════════════════════════════════════════════════
+
+services:
+
+  # ─────────────────────────────────────────────────────────────────
+  #  HOME AUTOMATION
+  # ─────────────────────────────────────────────────────────────────
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    # host mode lets HA discover devices (mDNS, DLNA, etc.) on your LAN.
+    network_mode: host
+    volumes:
+      - ${CONFIG_ROOT}/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:8123
+
+  # ─────────────────────────────────────────────────────────────────
+  #  MEDIA SERVER  (hardware transcoding via AMD VAAPI)
+  # ─────────────────────────────────────────────────────────────────
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    volumes:
+      - ${CONFIG_ROOT}/jellyfin:/config
+      - ${DATA_ROOT}/media:/media
+    devices:
+      - /dev/dri:/dev/dri        # AMD GPU for hardware transcoding
+    ports:
+      - "8096:8096"
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:8096
+    # After setup: Dashboard > Playback > enable VAAPI transcoding.
+
+  # ─────────────────────────────────────────────────────────────────
+  #  BOOKS  (reader apps connect over OPDS)
+  # ─────────────────────────────────────────────────────────────────
+  kavita:
+    image: jvmilazz0/kavita:latest
+    container_name: kavita
+    volumes:
+      - ${CONFIG_ROOT}/kavita:/kavita/config
+      - ${DATA_ROOT}/media/books:/books
+    ports:
+      - "5000:5000"
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:5000
+
+  # ─────────────────────────────────────────────────────────────────
+  #  DOWNLOAD VPN  +  TORRENT CLIENT
+  #  qBittorrent shares Gluetun's network: if the VPN drops, torrents
+  #  stop. There is no leak path.
+  # ─────────────────────────────────────────────────────────────────
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "8080:8080"              # qBittorrent WebUI (published via gluetun)
+      - "6881:6881"              # torrent TCP
+      - "6881:6881/udp"          # torrent UDP
+    volumes:
+      - ${CONFIG_ROOT}/gluetun:/gluetun
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES}
+      - FIREWALL_OUTBOUND_SUBNETS=${LAN_SUBNET}   # keep WebUI reachable on LAN
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"   # <-- all traffic through the VPN
+    depends_on:
+      - gluetun
+    volumes:
+      - ${CONFIG_ROOT}/qbittorrent:/config
+      - ${DATA_ROOT}:/data              # shared root enables hardlinks
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8080
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:8080  (default login: admin / see logs for pw)
+
+  # ─────────────────────────────────────────────────────────────────
+  #  AUTOMATION LAYER  ("*arr" apps)
+  #  Prowlarr feeds indexers to Sonarr/Radarr/Readarr, which send
+  #  grabs to qBittorrent and file the results into ${DATA_ROOT}/media.
+  # ─────────────────────────────────────────────────────────────────
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    volumes:
+      - ${CONFIG_ROOT}/prowlarr:/config
+    ports:
+      - "9696:9696"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    volumes:
+      - ${CONFIG_ROOT}/sonarr:/config
+      - ${DATA_ROOT}:/data
+    ports:
+      - "8989:8989"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    volumes:
+      - ${CONFIG_ROOT}/radarr:/config
+      - ${DATA_ROOT}:/data
+    ports:
+      - "7878:7878"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    container_name: readarr
+    volumes:
+      - ${CONFIG_ROOT}/readarr:/config
+      - ${DATA_ROOT}:/data
+    ports:
+      - "8787:8787"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    volumes:
+      - ${CONFIG_ROOT}/bazarr:/config
+      - ${DATA_ROOT}:/data
+    ports:
+      - "6767:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────────────────────────
+  #  MANAGEMENT & MONITORING
+  # ─────────────────────────────────────────────────────────────────
+  dockge:
+    image: louislam/dockge:latest
+    container_name: dockge
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONFIG_ROOT}/dockge:/app/data
+      - ${CONFIG_ROOT}/dockge/stacks:/opt/stacks
+    ports:
+      - "5001:5001"
+    environment:
+      - DOCKGE_STACKS_DIR=/opt/stacks
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:5001
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    volumes:
+      - ${CONFIG_ROOT}/uptime-kuma:/app/data
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:3001  (has a push app for phone alerts)
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "8888:8080"
+    restart: unless-stopped
+    # Live container logs in the browser: http://<server-ip>:8888
+
+  # Auto-update containers. Runs at 04:00 daily. Set to monitor-only by
+  # removing --cleanup and adding WATCHTOWER_MONITOR_ONLY=true if you'd
+  # rather update by hand.
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=${TZ}
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_SCHEDULE=0 0 4 * * *
+    restart: unless-stopped

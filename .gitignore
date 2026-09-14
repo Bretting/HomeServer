@@ -1,0 +1,5 @@
+# Never commit real secrets (VPN keys, tokens, LAN details)
+.env
+
+# Local scratch
+*.local
