@@ -156,6 +156,9 @@ bash scripts/backup.sh
 
 Schedule it daily with the systemd timer in
 [`docs/host-setup.md`](./docs/host-setup.md), and **test a restore once**.
+No external drive yet? Set everything up now and add the drive later —
+[`docs/backup-drive.md`](./docs/backup-drive.md) has the mount + restic steps
+(and a Backblaze B2 option for off-site backups tonight without hardware).
 
 **Home Assistant is included too:** HAOS writes its full nightly backups to a
 Samba share on the host (`/srv/appdata/ha-backups`), which restic then sweeps

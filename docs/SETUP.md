@@ -162,17 +162,24 @@ Do at least **AdGuard** tonight so DNS + hostnames work:
 
 ## Phase 7 — Backups 🟢 (don't skip)
 
-25. **HA → host share:** in HA, **Settings → System → Storage → Add network
-    storage**: server `<server-ip>`, share `ha-backups`, your `SMB_USER`/
-    `SMB_PASSWORD`, usage **Backups**. Then **Settings → System → Backups →
-    Automatic backups**: schedule daily, set an **encryption password** (save
-    it!), target the share.
-26. **restic:**
+25. **HA → host share (works now, no external drive needed):** in HA,
+    **Settings → System → Storage → Add network storage**: server
+    `<server-ip>`, share `ha-backups`, your `SMB_USER`/`SMB_PASSWORD`, usage
+    **Backups**. Then **Settings → System → Backups → Automatic backups**:
+    schedule daily, set an **encryption password** (save it!), target the share.
+
+> **No backup drive yet?** That's fine — do step 25 tonight (HA backups land
+> on the internal disk) and **skip steps 26–27 for now**. When your external
+> drive arrives, follow [`backup-drive.md`](./backup-drive.md) to mount it and
+> turn on restic. (Or use Backblaze B2 tonight — also in that doc.) Just don't
+> forget: HA-backups-on-the-same-disk is not real protection.
+
+26. **restic** (once you have the drive — see [`backup-drive.md`](./backup-drive.md)):
     ```bash
     sudo apt install -y restic
     cp scripts/backup.env.example scripts/backup.env
     chmod 600 scripts/backup.env
-    nano scripts/backup.env        # repo location + a long password (SAVE IT)
+    nano scripts/backup.env        # repo = /mnt/backup/... + a long password (SAVE IT)
     export $(grep -v '^#' scripts/backup.env | xargs) && restic init
     bash scripts/backup.sh         # first backup
     ```
