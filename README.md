@@ -134,8 +134,10 @@ Manage everything from then on in the **Dockge** UI at `:5001`.
     notification channel to **ntfy** (URL `http://ntfy:80`, your topic).
 11. **Scrutiny** (`:8084`) — edit the `devices:` list for `scrutiny` in the
     compose file to match your disks (`lsblk`); it then tracks SMART health.
-12. **Homepage** (`:3010`) — edit `${CONFIG_ROOT}/homepage/services.yaml` to
-    list your services. This is your daily landing page.
+12. **Homepage** (`:3010`) — comes pre-populated from
+    [`homepage/`](./homepage/). In `homepage/services.yaml`, find-and-replace
+    `CHANGE_ME` with your server IP and `HAOS_IP` with the HA VM's IP. This is
+    your daily landing page.
 13. **Mealie** (`:9925`) — create the admin account; import recipes by URL.
 
 ## Backups (do this!)

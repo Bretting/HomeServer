@@ -321,7 +321,7 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     volumes:
-      - ${CONFIG_ROOT}/homepage:/app/config
+      - ./homepage:/app/config                         # starter config in the repo
       - /var/run/docker.sock:/var/run/docker.sock:ro   # for container status
     ports:
       - "3010:3000"
