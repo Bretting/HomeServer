@@ -1,0 +1,108 @@
+# ═══════════════════════════════════════════════════════════════════
+#  Caddy reverse proxy — clean https:// names for every web UI.
+#
+#  These use the *.home.lan domain with Caddy's INTERNAL CA (self-signed),
+#  which is ideal for LAN + Tailscale access. Two things make it work:
+#    1. A local DNS record so the names resolve to this server. Easiest:
+#       AdGuard Home > Filters > DNS rewrites > add  *.home.lan -> <server-ip>
+#    2. Trust Caddy's root CA on your devices (optional, removes the browser
+#       warning). Grab it from: ${CONFIG_ROOT}/caddy/data/caddy/authorities/local/root.crt
+#
+#  Prefer real public HTTPS instead? Replace `tls internal` with your email
+#  at the top and use real domains (needs public DNS + open 80/443, or the
+#  Cloudflare / DNS-challenge plugin). See README.
+#
+#  Container names below are the compose service names — Caddy reaches them
+#  over the shared Docker network. qBittorrent is published via `gluetun`.
+# ═══════════════════════════════════════════════════════════════════
+
+(lan) {
+	tls internal
+}
+
+jellyfin.home.lan {
+	import lan
+	reverse_proxy jellyfin:8096
+}
+
+books.home.lan {
+	import lan
+	reverse_proxy kavita:5000
+}
+
+qbit.home.lan {
+	import lan
+	reverse_proxy gluetun:8080
+}
+
+sonarr.home.lan {
+	import lan
+	reverse_proxy sonarr:8989
+}
+
+radarr.home.lan {
+	import lan
+	reverse_proxy radarr:7878
+}
+
+readarr.home.lan {
+	import lan
+	reverse_proxy readarr:8787
+}
+
+prowlarr.home.lan {
+	import lan
+	reverse_proxy prowlarr:9696
+}
+
+bazarr.home.lan {
+	import lan
+	reverse_proxy bazarr:6767
+}
+
+requests.home.lan {
+	import lan
+	reverse_proxy jellyseerr:5055
+}
+
+recipes.home.lan {
+	import lan
+	reverse_proxy mealie:9000
+}
+
+ntfy.home.lan {
+	import lan
+	reverse_proxy ntfy:80
+}
+
+disks.home.lan {
+	import lan
+	reverse_proxy scrutiny:8080
+}
+
+# The dashboard — also served at the bare hostname `home.home.lan`.
+home.home.lan {
+	import lan
+	reverse_proxy homepage:3000
+}
+
+status.home.lan {
+	import lan
+	reverse_proxy uptime-kuma:3001
+}
+
+logs.home.lan {
+	import lan
+	reverse_proxy dozzle:8080
+}
+
+dockge.home.lan {
+	import lan
+	reverse_proxy dockge:5001
+}
+
+# Home Assistant lives in the HAOS VM, not a container — point at its LAN IP.
+# ha.home.lan {
+# 	import lan
+# 	reverse_proxy <haos-vm-ip>:8123
+# }
