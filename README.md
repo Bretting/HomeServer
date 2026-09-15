@@ -3,6 +3,10 @@
 Self-hosted stack for an old laptop (16 GB RAM, AMD CPU) running Docker.
 Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 
+> **Setting up for the first time? Start here:**
+> **[`docs/SETUP.md`](./docs/SETUP.md)** — the ordered, step-by-step runbook
+> from bare laptop to running server.
+
 ## What's in the box
 
 | Service | Container | What it does | Access |
