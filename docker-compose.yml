@@ -386,4 +386,5 @@ services:
       - TZ=${TZ}
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_SCHEDULE=0 0 4 * * *
+      - DOCKER_API_VERSION=1.44   # containrrr image ships an old client; force a newer API
     restart: unless-stopped
