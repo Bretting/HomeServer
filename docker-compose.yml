@@ -176,6 +176,7 @@ services:
 
   readarr:
     image: lscr.io/linuxserver/readarr:develop
+    platform: linux/amd64      # readarr:develop lacks an amd64/v3 variant
     container_name: readarr
     volumes:
       - ${CONFIG_ROOT}/readarr:/config
