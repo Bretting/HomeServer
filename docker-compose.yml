@@ -136,7 +136,7 @@ services:
   # (add each app's URL + API key). First run:
   #   docker compose run --rm recyclarr config create
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:latest
+    image: ghcr.io/recyclarr/recyclarr:8
     container_name: recyclarr
     user: "${PUID}:${PGID}"
     volumes:
