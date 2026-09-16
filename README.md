@@ -19,7 +19,6 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 | **Prowlarr** | `prowlarr` | Indexer manager (feeds the *arr apps) | `:9696` |
 | **Sonarr** | `sonarr` | Auto-grab TV shows | `:8989` |
 | **Radarr** | `radarr` | Auto-grab movies | `:7878` |
-| **Readarr** | `readarr` | Auto-grab books → Kavita | `:8787` |
 | **Bazarr** | `bazarr` | Auto-download subtitles | `:6767` |
 | **Jellyseerr** | `jellyseerr` | Family media **request page** → *arr | `:5055` |
 | **FlareSolverr** | `flaresolverr` | Helps Prowlarr reach protected indexers | `:8191` |
@@ -107,11 +106,13 @@ Manage everything from then on in the **Dockge** UI at `:5001`.
 
 1. **qBittorrent** — get the temp password from `docker compose logs qbittorrent`,
    log in at `:8080`, change it. Set the default save path to `/data/torrents`.
-2. **Prowlarr** (`:9696`) — add your indexers/trackers, then add Sonarr,
-   Radarr and Readarr as "Apps" so indexers sync automatically.
-3. **Sonarr/Radarr/Readarr** — add qBittorrent as the download client
+2. **Prowlarr** (`:9696`) — add your indexers/trackers, then add Sonarr and
+   Radarr as "Apps" so indexers sync automatically.
+3. **Sonarr/Radarr** — add qBittorrent as the download client
    (host `gluetun`, port `8080`), and set root folders to
-   `/data/media/tv`, `/data/media/movies`, `/data/media/books`.
+   `/data/media/tv` and `/data/media/movies`.
+   - **Books:** Readarr is retired, so there's no auto-grab. Drop ebooks into
+     `/data/media/books` (host `/srv/data/media/books`); Kavita serves them.
    - In **Prowlarr**, add a **FlareSolverr** proxy at `http://flaresolverr:8191`
      and tag the indexers that need it.
    - **Recyclarr**: `docker compose run --rm recyclarr config create`, then
@@ -169,7 +170,6 @@ off-site — so config, add-ons and all are covered. Setup is in
 
 - **AMD transcoding**: the `jellyfin` service maps `/dev/dri`; your user may
   need to be in the `render`/`video` group for hardware acceleration.
-- **Readarr** uses the `develop` tag because it has no stable release yet.
 - **Home Assistant** runs as a HAOS VM (for the add-on store), not a
   container — see [`homeassistant-vm/`](./homeassistant-vm/). Give the VM a
   bridged network for reliable device discovery.

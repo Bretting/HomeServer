@@ -58,12 +58,6 @@
         description: Movies
         server: my-docker
         container: radarr
-    - Readarr:
-        icon: readarr.png
-        href: http://CHANGE_ME:8787
-        description: Books
-        server: my-docker
-        container: readarr
     - Bazarr:
         icon: bazarr.png
         href: http://CHANGE_ME:6767

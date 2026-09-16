@@ -174,20 +174,10 @@ services:
       - TZ=${TZ}
     restart: unless-stopped
 
-  readarr:
-    image: lscr.io/linuxserver/readarr:develop
-    platform: linux/amd64      # readarr:develop lacks an amd64/v3 variant
-    container_name: readarr
-    volumes:
-      - ${CONFIG_ROOT}/readarr:/config
-      - ${DATA_ROOT}:/data
-    ports:
-      - "8787:8787"
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    restart: unless-stopped
+  # Readarr was retired by its developers and LinuxServer deprecated the image
+  # (June/July 2025) — the develop/nightly/latest tags no longer pull. Add
+  # ebooks directly into ${DATA_ROOT}/media/books instead; Kavita serves them.
+  # For book automation later, consider LazyLibrarian or a Readarr fork.
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
