@@ -266,6 +266,7 @@ services:
   # ─────────────────────────────────────────────────────────────────
   samba:
     image: dperson/samba:latest
+    platform: linux/amd64      # old multi-arch image lacks an amd64/v3 variant
     container_name: samba
     command: >
       -u "${SMB_USER};${SMB_PASSWORD}"
