@@ -58,6 +58,12 @@
         description: Movies
         server: my-docker
         container: radarr
+    - LazyLibrarian:
+        icon: lazylibrarian.png
+        href: http://CHANGE_ME:5299
+        description: Books
+        server: my-docker
+        container: lazylibrarian
     - Bazarr:
         icon: bazarr.png
         href: http://CHANGE_ME:6767

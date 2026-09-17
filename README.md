@@ -19,6 +19,7 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 | **Prowlarr** | `prowlarr` | Indexer manager (feeds the *arr apps) | `:9696` |
 | **Sonarr** | `sonarr` | Auto-grab TV shows | `:8989` |
 | **Radarr** | `radarr` | Auto-grab movies | `:7878` |
+| **LazyLibrarian** | `lazylibrarian` | Auto-grab books → Kavita | `:5299` |
 | **Bazarr** | `bazarr` | Auto-download subtitles | `:6767` |
 | **Jellyseerr** | `jellyseerr` | Family media **request page** → *arr | `:5055` |
 | **FlareSolverr** | `flaresolverr` | Helps Prowlarr reach protected indexers | `:8191` |
@@ -111,8 +112,11 @@ Manage everything from then on in the **Dockge** UI at `:5001`.
 3. **Sonarr/Radarr** — add qBittorrent as the download client
    (host `gluetun`, port `8080`), and set root folders to
    `/data/media/tv` and `/data/media/movies`.
-   - **Books:** Readarr is retired, so there's no auto-grab. Drop ebooks into
-     `/data/media/books` (host `/srv/data/media/books`); Kavita serves them.
+   - **Books (LazyLibrarian, `:5299`):** the maintained Readarr replacement.
+     Add providers (Torznab feed URLs from Prowlarr, or direct indexers), set
+     the download client to qBittorrent (host `gluetun`, port `8080`), and set
+     the ebook destination to `/data/media/books`. Kavita then serves them.
+     (You can also just drop ebooks straight into `/srv/data/media/books`.)
    - In **Prowlarr**, add a **FlareSolverr** proxy at `http://flaresolverr:8191`
      and tag the indexers that need it.
    - **Recyclarr**: `docker compose run --rm recyclarr config create`, then

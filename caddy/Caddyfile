@@ -60,6 +60,11 @@ bazarr.home.lan {
 	reverse_proxy bazarr:6767
 }
 
+books-dl.home.lan {
+	import lan
+	reverse_proxy lazylibrarian:5299
+}
+
 requests.home.lan {
 	import lan
 	reverse_proxy jellyseerr:5055

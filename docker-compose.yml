@@ -174,10 +174,27 @@ services:
       - TZ=${TZ}
     restart: unless-stopped
 
-  # Readarr was retired by its developers and LinuxServer deprecated the image
-  # (June/July 2025) — the develop/nightly/latest tags no longer pull. Add
-  # ebooks directly into ${DATA_ROOT}/media/books instead; Kavita serves them.
-  # For book automation later, consider LazyLibrarian or a Readarr fork.
+  # LazyLibrarian: book automation (the maintained replacement for the retired
+  # Readarr). Follows authors, searches your indexers, sends grabs to
+  # qBittorrent, and files ebooks into /data/media/books for Kavita to serve.
+  # First run: in its UI add providers (Torznab feeds from Prowlarr, or direct
+  # indexers), set the download client to qBittorrent (host gluetun, port 8080),
+  # and set the ebook destination to /data/media/books.
+  # The DOCKER_MODS line adds ffmpeg for the audiobook conversion features.
+  lazylibrarian:
+    image: lscr.io/linuxserver/lazylibrarian:latest
+    container_name: lazylibrarian
+    volumes:
+      - ${CONFIG_ROOT}/lazylibrarian:/config
+      - ${DATA_ROOT}:/data
+    ports:
+      - "5299:5299"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - DOCKER_MODS=linuxserver/mods:lazylibrarian-ffmpeg
+    restart: unless-stopped
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
