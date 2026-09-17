@@ -1,0 +1,128 @@
+# Homepage services — https://gethomepage.dev/configs/services/
+#
+# ► BEFORE USE: find-and-replace the two placeholders:
+#     CHANGE_ME  -> your server's LAN IP (e.g. 192.168.1.10)
+#     HAOS_IP    -> your Home Assistant VM's IP
+#   (Or, once Caddy + AdGuard are up, swap the hrefs for the
+#    https://name.home.lan addresses from caddy/Caddyfile.)
+#
+# `server:`/`container:` show live status via the Docker socket (docker.yaml).
+# Optional API widgets (which need each app's API key) are shown commented.
+
+- Media:
+    - Jellyfin:
+        icon: jellyfin.png
+        href: http://CHANGE_ME:8096
+        description: Movies & TV
+        server: my-docker
+        container: jellyfin
+        # widget:
+        #   type: jellyfin
+        #   url: http://jellyfin:8096
+        #   key: YOUR_API_KEY
+    - Jellyseerr:
+        icon: jellyseerr.png
+        href: http://CHANGE_ME:5055
+        description: Request movies & shows
+        server: my-docker
+        container: jellyseerr
+    - Kavita:
+        icon: kavita.png
+        href: http://CHANGE_ME:5000
+        description: Books
+        server: my-docker
+        container: kavita
+
+- Downloads:
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: http://CHANGE_ME:8080
+        description: Torrent client (via VPN)
+        server: my-docker
+        container: qbittorrent
+    - SABnzbd:
+        icon: sabnzbd.png
+        href: http://CHANGE_ME:8090
+        description: Usenet downloader
+        server: my-docker
+        container: sabnzbd
+    - Prowlarr:
+        icon: prowlarr.png
+        href: http://CHANGE_ME:9696
+        description: Indexers
+        server: my-docker
+        container: prowlarr
+    - Sonarr:
+        icon: sonarr.png
+        href: http://CHANGE_ME:8989
+        description: TV
+        server: my-docker
+        container: sonarr
+    - Radarr:
+        icon: radarr.png
+        href: http://CHANGE_ME:7878
+        description: Movies
+        server: my-docker
+        container: radarr
+    - LazyLibrarian:
+        icon: lazylibrarian.png
+        href: http://CHANGE_ME:5299
+        description: Books
+        server: my-docker
+        container: lazylibrarian
+    - Bazarr:
+        icon: bazarr.png
+        href: http://CHANGE_ME:6767
+        description: Subtitles
+        server: my-docker
+        container: bazarr
+
+- Home:
+    - Home Assistant:
+        icon: home-assistant.png
+        href: http://HAOS_IP:8123
+        description: Automation (VM)
+    - Mealie:
+        icon: mealie.png
+        href: http://CHANGE_ME:9925
+        description: Recipes
+        server: my-docker
+        container: mealie
+
+- Infrastructure:
+    - AdGuard Home:
+        icon: adguard-home.png
+        href: http://CHANGE_ME:8083
+        description: DNS & ad-block
+        server: my-docker
+        container: adguardhome
+    - Uptime Kuma:
+        icon: uptime-kuma.png
+        href: http://CHANGE_ME:3001
+        description: Status & alerts
+        server: my-docker
+        container: uptime-kuma
+    - Scrutiny:
+        icon: scrutiny.png
+        href: http://CHANGE_ME:8084
+        description: Disk health
+        server: my-docker
+        container: scrutiny
+    - Dockge:
+        icon: dockge.png
+        href: http://CHANGE_ME:5001
+        description: Stack manager
+        server: my-docker
+        container: dockge
+    - Dozzle:
+        icon: dozzle.png
+        href: http://CHANGE_ME:8888
+        description: Container logs
+        server: my-docker
+        container: dozzle
+    - ntfy:
+        icon: ntfy.png
+        href: http://CHANGE_ME:8085
+        description: Notifications
+        server: my-docker
+        container: ntfy

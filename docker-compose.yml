@@ -11,20 +11,13 @@ services:
 
   # ─────────────────────────────────────────────────────────────────
   #  HOME AUTOMATION
+  #
+  #  Home Assistant is NOT a container here — to get the add-on store you
+  #  need the Supervisor, which only comes with Home Assistant OS (HAOS).
+  #  HAOS runs in a KVM virtual machine alongside this Docker stack.
+  #  See:  homeassistant-vm/install-haos-vm.sh  and  homeassistant-vm/README.md
+  #  Web UI once running:  http://<haos-vm-ip>:8123
   # ─────────────────────────────────────────────────────────────────
-  homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:stable
-    container_name: homeassistant
-    # host mode lets HA discover devices (mDNS, DLNA, etc.) on your LAN.
-    network_mode: host
-    volumes:
-      - ${CONFIG_ROOT}/homeassistant:/config
-      - /etc/localtime:/etc/localtime:ro
-      - /run/dbus:/run/dbus:ro
-    environment:
-      - TZ=${TZ}
-    restart: unless-stopped
-    # Web UI: http://<server-ip>:8123
 
   # ─────────────────────────────────────────────────────────────────
   #  MEDIA SERVER  (hardware transcoding via AMD VAAPI)
@@ -106,6 +99,25 @@ services:
     restart: unless-stopped
     # Web UI: http://<server-ip>:8080  (default login: admin / see logs for pw)
 
+  # SABnzbd: Usenet (NZB) downloader. Usenet is a direct SSL connection, not
+  # peer-to-peer, so this does NOT go through the VPN. Needs a Usenet provider
+  # (servers) + a Usenet indexer (to find NZBs). First run: add your provider
+  # under Config > Servers, and point completed downloads at /data.
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    volumes:
+      - ${CONFIG_ROOT}/sabnzbd:/config
+      - ${DATA_ROOT}:/data
+    ports:
+      - "8090:8080"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:8090
+
   # ─────────────────────────────────────────────────────────────────
   #  AUTOMATION LAYER  ("*arr" apps)
   #  Prowlarr feeds indexers to Sonarr/Radarr/Readarr, which send
@@ -122,6 +134,35 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+    restart: unless-stopped
+
+  # Helps Prowlarr solve Cloudflare/JS challenges on protected indexers.
+  # In Prowlarr: Settings > Indexers > add a FlareSolverr proxy at
+  # http://flaresolverr:8191, then tag the indexers that need it.
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    ports:
+      - "8191:8191"
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  # Recyclarr applies TRaSH-Guides quality profiles/custom formats to
+  # Sonarr & Radarr on a schedule, so downloads are well-sized and good
+  # quality without hand-tuning. Edit ${CONFIG_ROOT}/recyclarr/recyclarr.yml
+  # (add each app's URL + API key). First run:
+  #   docker compose run --rm recyclarr config create
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr:8
+    container_name: recyclarr
+    user: "${PUID}:${PGID}"
+    volumes:
+      - ${CONFIG_ROOT}/recyclarr:/config
+    environment:
+      - TZ=${TZ}
+      - CRON_SCHEDULE=@daily
     restart: unless-stopped
 
   sonarr:
@@ -152,18 +193,26 @@ services:
       - TZ=${TZ}
     restart: unless-stopped
 
-  readarr:
-    image: lscr.io/linuxserver/readarr:develop
-    container_name: readarr
+  # LazyLibrarian: book automation (the maintained replacement for the retired
+  # Readarr). Follows authors, searches your indexers, sends grabs to
+  # qBittorrent, and files ebooks into /data/media/books for Kavita to serve.
+  # First run: in its UI add providers (Torznab feeds from Prowlarr, or direct
+  # indexers), set the download client to qBittorrent (host gluetun, port 8080),
+  # and set the ebook destination to /data/media/books.
+  # The DOCKER_MODS line adds ffmpeg for the audiobook conversion features.
+  lazylibrarian:
+    image: lscr.io/linuxserver/lazylibrarian:latest
+    container_name: lazylibrarian
     volumes:
-      - ${CONFIG_ROOT}/readarr:/config
+      - ${CONFIG_ROOT}/lazylibrarian:/config
       - ${DATA_ROOT}:/data
     ports:
-      - "8787:8787"
+      - "5299:5299"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - DOCKER_MODS=linuxserver/mods:lazylibrarian-ffmpeg
     restart: unless-stopped
 
   bazarr:
@@ -177,6 +226,83 @@ services:
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  # Jellyseerr: a friendly request page for the family. They browse and
+  # request movies/shows; approved requests flow into Radarr/Sonarr.
+  # First run: connect it to Jellyfin, then to Radarr & Sonarr in its UI.
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    volumes:
+      - ${CONFIG_ROOT}/jellyseerr:/app/config
+    ports:
+      - "5055:5055"
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────────────────────────
+  #  NETWORK: reverse proxy + ad-blocking DNS
+  # ─────────────────────────────────────────────────────────────────
+
+  # Caddy gives every web UI a clean https://name.home.lan address with
+  # automatic TLS (self-signed internal CA on the LAN). Edit ./caddy/Caddyfile.
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"          # HTTP/3
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${CONFIG_ROOT}/caddy/data:/data
+      - ${CONFIG_ROOT}/caddy/config:/config
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  # AdGuard Home: network-wide ad/tracker blocking + local DNS.
+  # First run: open http://<server-ip>:3000 to run the setup wizard, and set
+  # the admin interface to listen on port 80 (maps to host :8083 below).
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: adguardhome
+    ports:
+      - "53:53/tcp"            # DNS
+      - "53:53/udp"            # DNS
+      - "3000:3000/tcp"        # initial setup wizard (one-time)
+      - "8083:80/tcp"          # admin dashboard after setup
+    volumes:
+      - ${CONFIG_ROOT}/adguardhome/work:/opt/adguardhome/work
+      - ${CONFIG_ROOT}/adguardhome/conf:/opt/adguardhome/conf
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────────────────────────
+  #  BACKUP TARGET for the Home Assistant VM
+  #  A small SMB share so HAOS can drop its full backups onto the host, where
+  #  restic (scripts/backup.sh backs up CONFIG_ROOT) then versions them and
+  #  ships them off-site. See homeassistant-vm/README.md > Backups.
+  #  Reachable on the LAN only — restrict port 445 with the firewall.
+  # ─────────────────────────────────────────────────────────────────
+  samba:
+    image: dperson/samba:latest
+    platform: linux/amd64      # old multi-arch image lacks an amd64/v3 variant
+    container_name: samba
+    command: >
+      -u "${SMB_USER};${SMB_PASSWORD}"
+      -s "ha-backups;/share;yes;no;no;${SMB_USER}"
+      -p
+    ports:
+      - "445:445"
+    volumes:
+      - ${CONFIG_ROOT}/ha-backups:/share
+    environment:
       - TZ=${TZ}
     restart: unless-stopped
 
@@ -217,6 +343,73 @@ services:
     restart: unless-stopped
     # Live container logs in the browser: http://<server-ip>:8888
 
+  # Homepage: one dashboard linking every service, with live status.
+  # Configure via YAML in ${CONFIG_ROOT}/homepage (services.yaml, widgets.yaml).
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    volumes:
+      - ./homepage:/app/config                         # starter config in the repo
+      - /var/run/docker.sock:/var/run/docker.sock:ro   # for container status
+    ports:
+      - "3010:3000"
+    environment:
+      - TZ=${TZ}
+      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:3010
+
+  # ntfy: self-hosted push notifications. Point Uptime Kuma (and HA, *arr,
+  # etc.) at it, subscribe to your topic in the ntfy phone app.
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    command: serve
+    volumes:
+      - ${CONFIG_ROOT}/ntfy/cache:/var/cache/ntfy
+      - ${CONFIG_ROOT}/ntfy/etc:/etc/ntfy
+    ports:
+      - "8085:80"
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:8085
+
+  # Scrutiny: disk SMART-health monitoring — warns before a drive dies.
+  # List your actual drives under `devices:` (find them with `lsblk`).
+  scrutiny:
+    image: ghcr.io/analogj/scrutiny:master-omnibus
+    container_name: scrutiny
+    cap_add:
+      - SYS_RAWIO            # add SYS_ADMIN as well if you have NVMe drives
+    ports:
+      - "8084:8080"
+    volumes:
+      - ${CONFIG_ROOT}/scrutiny/config:/opt/scrutiny/config
+      - ${CONFIG_ROOT}/scrutiny/influxdb:/opt/scrutiny/influxdb
+      - /run/udev:/run/udev:ro
+    devices:
+      - "/dev/sda"           # <-- edit to match your disks (lsblk); add more lines
+      # - "/dev/sdb"
+      # - "/dev/nvme0"
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:8084
+
+  # Mealie: family recipe manager (import by URL, meal plans, shopping lists).
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:latest
+    container_name: mealie
+    volumes:
+      - ${CONFIG_ROOT}/mealie:/app/data
+    ports:
+      - "9925:9000"
+    environment:
+      - TZ=${TZ}
+      - BASE_URL=${MEALIE_BASE_URL}
+      - ALLOW_SIGNUP=false
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:9925
+
   # Auto-update containers. Runs at 04:00 daily. Set to monitor-only by
   # removing --cleanup and adding WATCHTOWER_MONITOR_ONLY=true if you'd
   # rather update by hand.
@@ -229,4 +422,5 @@ services:
       - TZ=${TZ}
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_SCHEDULE=0 0 4 * * *
+      - DOCKER_API_VERSION=1.44   # containrrr image ships an old client; force a newer API
     restart: unless-stopped
