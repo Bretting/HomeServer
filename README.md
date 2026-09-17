@@ -15,6 +15,7 @@ Everything is defined in [`docker-compose.yml`](./docker-compose.yml).
 | **Jellyfin** | `jellyfin` | Media server (HW transcoding) | `:8096` — via **Jellyfin app** |
 | **Kavita** | `kavita` | Read books on your phone (OPDS) | `:5000` — via reader apps |
 | **qBittorrent** | `qbittorrent` | Torrent client (behind VPN) | `:8080` |
+| **SABnzbd** | `sabnzbd` | Usenet (NZB) downloader | `:8090` |
 | **Gluetun** | `gluetun` | VPN tunnel for all torrent traffic | — |
 | **Prowlarr** | `prowlarr` | Indexer manager (feeds the *arr apps) | `:9696` |
 | **Sonarr** | `sonarr` | Auto-grab TV shows | `:8989` |

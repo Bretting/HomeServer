@@ -40,6 +40,12 @@
         description: Torrent client (via VPN)
         server: my-docker
         container: qbittorrent
+    - SABnzbd:
+        icon: sabnzbd.png
+        href: http://CHANGE_ME:8090
+        description: Usenet downloader
+        server: my-docker
+        container: sabnzbd
     - Prowlarr:
         icon: prowlarr.png
         href: http://CHANGE_ME:9696

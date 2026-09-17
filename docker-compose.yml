@@ -99,6 +99,25 @@ services:
     restart: unless-stopped
     # Web UI: http://<server-ip>:8080  (default login: admin / see logs for pw)
 
+  # SABnzbd: Usenet (NZB) downloader. Usenet is a direct SSL connection, not
+  # peer-to-peer, so this does NOT go through the VPN. Needs a Usenet provider
+  # (servers) + a Usenet indexer (to find NZBs). First run: add your provider
+  # under Config > Servers, and point completed downloads at /data.
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    volumes:
+      - ${CONFIG_ROOT}/sabnzbd:/config
+      - ${DATA_ROOT}:/data
+    ports:
+      - "8090:8080"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    restart: unless-stopped
+    # Web UI: http://<server-ip>:8090
+
   # ─────────────────────────────────────────────────────────────────
   #  AUTOMATION LAYER  ("*arr" apps)
   #  Prowlarr feeds indexers to Sonarr/Radarr/Readarr, which send
