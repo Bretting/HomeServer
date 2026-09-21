@@ -1,0 +1,132 @@
+# Homepage services — https://gethomepage.dev/configs/services/
+#
+# Tiles point at the server's TAILSCALE IP (100.111.165.26) so they work
+# from anywhere you're on the tailnet — at home or on the train — without
+# depending on which Wi-Fi/LAN you're on. Every device that opens the
+# dashboard must have Tailscale running and be logged into the tailnet.
+#
+# ► Home Assistant still uses HAOS_IP — replace it with the HA VM's LAN IP
+#   once that VM is built (it's not on the tailnet itself).
+# ► Prefer names? Once Caddy + AdGuard are up, swap the hrefs for the
+#   https://name.home.lan addresses from caddy/Caddyfile.
+#
+# `server:`/`container:` show live status via the Docker socket (docker.yaml).
+# Optional API widgets (which need each app's API key) are shown commented.
+
+- Media:
+    - Jellyfin:
+        icon: jellyfin.png
+        href: http://100.111.165.26:8096
+        description: Movies & TV
+        server: my-docker
+        container: jellyfin
+        # widget:
+        #   type: jellyfin
+        #   url: http://jellyfin:8096
+        #   key: YOUR_API_KEY
+    - Jellyseerr:
+        icon: jellyseerr.png
+        href: http://100.111.165.26:5055
+        description: Request movies & shows
+        server: my-docker
+        container: jellyseerr
+    - Kavita:
+        icon: kavita.png
+        href: http://100.111.165.26:5000
+        description: Books
+        server: my-docker
+        container: kavita
+
+- Downloads:
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: http://100.111.165.26:8080
+        description: Torrent client (via VPN)
+        server: my-docker
+        container: qbittorrent
+    - SABnzbd:
+        icon: sabnzbd.png
+        href: http://100.111.165.26:8090
+        description: Usenet downloader
+        server: my-docker
+        container: sabnzbd
+    - Prowlarr:
+        icon: prowlarr.png
+        href: http://100.111.165.26:9696
+        description: Indexers
+        server: my-docker
+        container: prowlarr
+    - Sonarr:
+        icon: sonarr.png
+        href: http://100.111.165.26:8989
+        description: TV
+        server: my-docker
+        container: sonarr
+    - Radarr:
+        icon: radarr.png
+        href: http://100.111.165.26:7878
+        description: Movies
+        server: my-docker
+        container: radarr
+    - LazyLibrarian:
+        icon: lazylibrarian.png
+        href: http://100.111.165.26:5299
+        description: Books
+        server: my-docker
+        container: lazylibrarian
+    - Bazarr:
+        icon: bazarr.png
+        href: http://100.111.165.26:6767
+        description: Subtitles
+        server: my-docker
+        container: bazarr
+
+- Home:
+    - Home Assistant:
+        icon: home-assistant.png
+        href: http://HAOS_IP:8123
+        description: Automation (VM)
+    - Mealie:
+        icon: mealie.png
+        href: http://100.111.165.26:9925
+        description: Recipes
+        server: my-docker
+        container: mealie
+
+- Infrastructure:
+    - AdGuard Home:
+        icon: adguard-home.png
+        href: http://100.111.165.26:8083
+        description: DNS & ad-block
+        server: my-docker
+        container: adguardhome
+    - Uptime Kuma:
+        icon: uptime-kuma.png
+        href: http://100.111.165.26:3001
+        description: Status & alerts
+        server: my-docker
+        container: uptime-kuma
+    - Scrutiny:
+        icon: scrutiny.png
+        href: http://100.111.165.26:8084
+        description: Disk health
+        server: my-docker
+        container: scrutiny
+    - Dockge:
+        icon: dockge.png
+        href: http://100.111.165.26:5001
+        description: Stack manager
+        server: my-docker
+        container: dockge
+    - Dozzle:
+        icon: dozzle.png
+        href: http://100.111.165.26:8888
+        description: Container logs
+        server: my-docker
+        container: dozzle
+    - ntfy:
+        icon: ntfy.png
+        href: http://100.111.165.26:8085
+        description: Notifications
+        server: my-docker
+        container: ntfy

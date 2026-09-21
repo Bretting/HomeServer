@@ -1,0 +1,17 @@
+# Homepage header widgets — https://gethomepage.dev/configs/widgets/
+- resources:
+    label: system
+    cpu: true
+    memory: true
+    disk: /
+
+- search:
+    provider: duckduckgo
+    target: _blank
+
+- datetime:
+    text_size: xl
+    format:
+      dateStyle: long
+      timeStyle: short
+      hourCycle: h23
