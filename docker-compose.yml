@@ -141,9 +141,14 @@ services:
     user: "${PUID}:${PGID}"
     volumes:
       - ${CONFIG_ROOT}/recyclarr:/config
+      # Tracked config from the repo (secrets stay in .env, not here)
+      - ./recyclarr/recyclarr.yml:/config/recyclarr.yml:ro
     environment:
       - TZ=${TZ}
       - CRON_SCHEDULE=@daily
+      # Recyclarr reads these via `!env_var` in recyclarr.yml
+      - RADARR_API_KEY=${RADARR_API_KEY}
+      - SONARR_API_KEY=${SONARR_API_KEY:-}
     restart: unless-stopped
 
   sonarr:

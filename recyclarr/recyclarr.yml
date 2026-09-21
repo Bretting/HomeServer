@@ -1,0 +1,65 @@
+# ─────────────────────────────────────────────────────────────
+#  Recyclarr — automatic quality profiles for Radarr/Sonarr
+#
+#  This config keeps downloads at a sane SIZE by targeting 1080p
+#  Bluray/WEB releases and steering AWAY from huge REMUX and 2160p
+#  files. A REMUX is the untouched, lossless disc bitstream — a single
+#  1080p REMUX runs 25–40 GB, while a 1080p Bluray/WEB *encode* of the
+#  same movie is ~8–15 GB and looks virtually identical on a TV.
+#
+#  How it works:
+#   - The "HD Bluray + WEB" profile only allows up to Bluray-1080p.
+#     Remux-1080p, Remux-2160p and Bluray-2160p are NOT in the allowed
+#     list, so Radarr won't grab them.
+#   - Templates are maintained upstream (TRaSH guides); Recyclarr
+#     resolves the exact format IDs at sync time.
+#
+#  API keys come from the environment (set in .env), so this file holds
+#  no secrets and is safe to commit. See docker-compose.yml (recyclarr
+#  service) for the RADARR_API_KEY / SONARR_API_KEY wiring.
+#
+#  Apply changes now (don't wait for the daily run):
+#     docker compose run --rm recyclarr sync
+#
+#  NOTE: This only changes what Radarr grabs GOING FORWARD. Movies you
+#  already have (e.g. a 34 GB REMUX) are not touched — re-grab or delete
+#  them manually if you want the smaller version.
+# ─────────────────────────────────────────────────────────────
+
+radarr:
+  movies:
+    base_url: http://radarr:7878
+    api_key: !env_var RADARR_API_KEY
+
+    include:
+      # Quality sizes (max GB/min per quality) — TRaSH recommended
+      - template: radarr-quality-definition-movie
+      # The 1080p Bluray + WEB profile (no REMUX, no 2160p)
+      - template: radarr-quality-profile-hd-bluray-web
+      # Custom formats + scoring that pair with the profile above
+      - template: radarr-custom-formats-hd-bluray-web
+
+    # Prune custom formats Recyclarr manages but that are no longer in
+    # this config, so the profile stays clean over time.
+    delete_old_custom_formats: true
+
+# ─────────────────────────────────────────────────────────────
+#  Sonarr (TV) — OPTIONAL. Series REMUX/2160p get large too. To enable:
+#    1. Uncomment the block below.
+#    2. Set SONARR_API_KEY in .env (and it's already passed through in
+#       docker-compose.yml).
+#    3. Confirm the template names on your version with:
+#         docker compose run --rm recyclarr list templates sonarr
+#    4. docker compose run --rm recyclarr sync
+# ─────────────────────────────────────────────────────────────
+# sonarr:
+#   tv:
+#     base_url: http://sonarr:8989
+#     api_key: !env_var SONARR_API_KEY
+#
+#     include:
+#       - template: sonarr-quality-definition-series
+#       - template: sonarr-v4-quality-profile-web-1080p
+#       - template: sonarr-v4-custom-formats-web-1080p
+#
+#     delete_old_custom_formats: true

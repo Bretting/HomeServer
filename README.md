@@ -119,9 +119,15 @@ Manage everything from then on in the **Dockge** UI at `:5001`.
      (You can also just drop ebooks straight into `/srv/data/media/books`.)
    - In **Prowlarr**, add a **FlareSolverr** proxy at `http://flaresolverr:8191`
      and tag the indexers that need it.
-   - **Recyclarr**: `docker compose run --rm recyclarr config create`, then
-     edit `${CONFIG_ROOT}/recyclarr/recyclarr.yml` with each app's URL + API
-     key. It syncs quality profiles daily.
+   - **Recyclarr**: a ready-made config lives in
+     [`recyclarr/recyclarr.yml`](./recyclarr/recyclarr.yml) (tracked in the
+     repo, bind-mounted into the container). It targets **1080p Bluray/WEB and
+     excludes REMUX/2160p**, keeping movies ~8–15 GB instead of 30 GB+. Just
+     set `RADARR_API_KEY` (and optionally `SONARR_API_KEY`) in `.env` — the
+     keys are read from the environment, not stored in the config. Apply it
+     immediately with `docker compose run --rm recyclarr sync`; otherwise it
+     syncs daily. (Existing oversized files aren't changed — re-grab them to
+     get the smaller version.)
 4. **Jellyfin** (`:8096`) — add libraries pointing at `/media/tv`,
    `/media/movies`; enable VAAPI transcoding under Playback.
 5. **Kavita** (`:5000`) — add a library at `/books`.
