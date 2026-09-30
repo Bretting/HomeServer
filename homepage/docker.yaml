@@ -1,0 +1,4 @@
+# Lets Homepage read container status/stats via the mounted Docker socket.
+# Referenced by `server: my-docker` in services.yaml.
+my-docker:
+  socket: /var/run/docker.sock

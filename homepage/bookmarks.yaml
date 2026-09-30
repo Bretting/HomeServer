@@ -1,0 +1,19 @@
+# Homepage bookmarks — https://gethomepage.dev/configs/bookmarks/
+- Docs:
+    - Setup runbook:
+        - abbr: SET
+          href: https://github.com/Bretting/HomeServer/blob/main/docs/SETUP.md
+    - Remote access:
+        - abbr: TS
+          href: https://github.com/Bretting/HomeServer/blob/main/docs/remote-access.md
+
+- References:
+    - TRaSH Guides:
+        - abbr: TRA
+          href: https://trash-guides.info/
+    - Jellyfin docs:
+        - abbr: JF
+          href: https://jellyfin.org/docs/
+    - Home Assistant docs:
+        - abbr: HA
+          href: https://www.home-assistant.io/docs/
