@@ -306,8 +306,8 @@ services:
     volumes:
       - ${CONFIG_ROOT}/ha-backups:/share
       - ${DATA_ROOT}/media:/media:ro          # read-only media share for phones/players
-      - ${DATA_ROOT}/usenet:/downloads        # read-write: completed/incomplete NZB downloads
-      - ${DATA_ROOT}/torrents:/torrents       # read-write: qBittorrent downloads (delete via qB, not here)
+      - ${DATA_ROOT}/usenet/complete/prowlarr:/downloads   # Prowlarr manual NZB grabs only
+      - ${DATA_ROOT}/torrents/prowlarr:/torrents           # Prowlarr manual torrent grabs only
     environment:
       - TZ=${TZ}
     restart: unless-stopped
