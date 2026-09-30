@@ -297,11 +297,13 @@ services:
     command: >
       -u "${SMB_USER};${SMB_PASSWORD}"
       -s "ha-backups;/share;yes;no;no;${SMB_USER}"
+      -s "media;/media;yes;yes;no;${SMB_USER}"
       -p
     ports:
       - "445:445"
     volumes:
       - ${CONFIG_ROOT}/ha-backups:/share
+      - ${DATA_ROOT}/media:/media:ro       # read-only media share for phones/players
     environment:
       - TZ=${TZ}
     restart: unless-stopped
