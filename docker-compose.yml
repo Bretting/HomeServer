@@ -299,6 +299,7 @@ services:
       -s "ha-backups;/share;yes;no;no;${SMB_USER}"
       -s "media;/media;yes;yes;no;${SMB_USER}"
       -s "downloads;/downloads;yes;no;no;${SMB_USER}"
+      -s "torrents;/torrents;yes;no;no;${SMB_USER}"
       -p
     ports:
       - "445:445"
@@ -306,6 +307,7 @@ services:
       - ${CONFIG_ROOT}/ha-backups:/share
       - ${DATA_ROOT}/media:/media:ro          # read-only media share for phones/players
       - ${DATA_ROOT}/usenet:/downloads        # read-write: completed/incomplete NZB downloads
+      - ${DATA_ROOT}/torrents:/torrents       # read-write: qBittorrent downloads (delete via qB, not here)
     environment:
       - TZ=${TZ}
     restart: unless-stopped
